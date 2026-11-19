@@ -1,0 +1,132 @@
+import java.util.*;
+import java.util.stream.Collectors;
+
+class Order {
+    int orderId;
+    String customerName;
+    String product;
+    String category;
+    double amount;
+    String status;
+    String city;
+
+    Order(int orderId, String customerName, String product,
+          String category, double amount, String status, String city) {
+
+        this.orderId = orderId;
+        this.customerName = customerName;
+        this.product = product;
+        this.category = category;
+        this.amount = amount;
+        this.status = status;
+        this.city = city;
+    }
+
+    public String toString() {
+        return orderId + " " + customerName + " " + product +
+               " " + category + " " + amount + " " + status + " " + city;
+    }
+}
+
+public class Main {
+
+    public static void main(String[] args) {
+
+        List<Order> orders = Arrays.asList(
+
+            new Order(101, "Rahul", "Laptop", "Electronics", 55000, "Delivered", "Hyderabad"),
+            new Order(102, "Priya", "Mobile", "Electronics", 25000, "Pending", "Chennai"),
+            new Order(103, "Arun", "Shoes", "Fashion", 3000, "Delivered", "Bangalore"),
+            new Order(104, "Sneha", "Watch", "Fashion", 5000, "Cancelled", "Hyderabad"),
+            new Order(105, "Kiran", "Tablet", "Electronics", 20000, "Delivered", "Chennai"),
+            new Order(106, "Ravi", "Chair", "Furniture", 7000, "Pending", "Bangalore"),
+            new Order(107, "Anu", "Table", "Furniture", 12000, "Delivered", "Hyderabad"),
+            new Order(108, "Vijay", "Headphones", "Electronics", 2500, "Delivered", "Bangalore")
+        );
+
+        // 1. Filter orders based on amount and status
+
+        System.out.println("Orders with amount greater than 10000 and Delivered:");
+
+        orders.stream()
+              .filter(o -> o.amount > 10000 && o.status.equals("Delivered"))
+              .forEach(System.out::println);
+
+
+        // 2. Sort orders by amount
+
+        System.out.println("\nOrders sorted by amount:");
+
+        orders.stream()
+              .sorted(Comparator.comparingDouble(o -> o.amount))
+              .forEach(System.out::println);
+
+
+        // 3. Find highest and lowest order amounts
+
+        double highest = orders.stream()
+                .mapToDouble(o -> o.amount)
+                .max()
+                .orElse(0);
+
+        double lowest = orders.stream()
+                .mapToDouble(o -> o.amount)
+                .min()
+                .orElse(0);
+
+        System.out.println("\nHighest Order Amount: " + highest);
+        System.out.println("Lowest Order Amount: " + lowest);
+
+
+        // 4. Calculate total sales
+
+        double totalSales = orders.stream()
+                .mapToDouble(o -> o.amount)
+                .sum();
+
+        System.out.println("\nTotal Sales: " + totalSales);
+
+
+        // 5. Count total number of orders
+
+        long count = orders.stream().count();
+
+        System.out.println("\nTotal Orders: " + count);
+
+
+        // 6. Group orders by category
+
+        System.out.println("\nOrders grouped by Category:");
+
+        Map<String, List<Order>> categoryGroups =
+                orders.stream()
+                      .collect(Collectors.groupingBy(o -> o.category));
+
+        categoryGroups.forEach((category, list) -> {
+            System.out.println(category + " : " + list);
+        });
+
+
+        // Group orders by city
+
+        System.out.println("\nOrders grouped by City:");
+
+        Map<String, List<Order>> cityGroups =
+                orders.stream()
+                      .collect(Collectors.groupingBy(o -> o.city));
+
+        cityGroups.forEach((city, list) -> {
+            System.out.println(city + " : " + list);
+        });
+
+
+        // 7. Calculate average order amount
+
+        double average = orders.stream()
+                .mapToDouble(o -> o.amount)
+                .average()
+                .orElse(0);
+
+        System.out.println("\nAverage Order Amount: " + average);
+    }
+}
