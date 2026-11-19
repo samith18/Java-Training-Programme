@@ -1,0 +1,80 @@
+package Streams;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+record Order(
+        String orderId,
+        String customerName,
+        String product,
+        String category,
+        double amount,
+        String status,
+        String deliveryCity
+) {}
+
+public class EcommerceOrderAnalytics {
+    public static void main(String[] args) {
+        List<Order> orders = List.of(
+                new Order("ORD-101", "Aarav", "Laptop", "Electronics", 65000.0, "DELIVERED", "Hyderabad"),
+                new Order("ORD-102", "Diya", "Running Shoes", "Fashion", 3200.0, "DELIVERED", "Bengaluru"),
+                new Order("ORD-103", "Rohan", "Smartphone", "Electronics", 28000.0, "PENDING", "Hyderabad"),
+                new Order("ORD-104", "Sneha", "Office Chair", "Furniture", 8500.0, "DELIVERED", "Chennai"),
+                new Order("ORD-105", "Vikram", "Headphones", "Electronics", 4500.0, "CANCELLED", "Bengaluru"),
+                new Order("ORD-106", "Ananya", "Study Desk", "Furniture", 12000.0, "DELIVERED", "Hyderabad")
+        );
+
+        System.out.println("--- 1. High-Value Delivered Orders (> ₹5000) ---");
+        orders.stream()
+                .filter(o -> o.amount() > 5000 && "DELIVERED".equalsIgnoreCase(o.status()))
+                .forEach(System.out::println);
+
+        System.out.println("\n--- 2. Orders Sorted by Amount (High to Low) ---");
+        orders.stream()
+                .sorted(Comparator.comparingDouble(Order::amount).reversed())
+                .forEach(o -> System.out.println(o.orderId() + " | " + o.product() + " | ₹" + o.amount()));
+
+        Order highest = orders.stream()
+                .max(Comparator.comparingDouble(Order::amount))
+                .orElseThrow();
+        Order lowest = orders.stream()
+                .min(Comparator.comparingDouble(Order::amount))
+                .orElseThrow();
+        System.out.println("\n--- 3. Highest & Lowest Order ---");
+        System.out.println("Highest: " + highest.product() + " (₹" + highest.amount() + ")");
+        System.out.println("Lowest : " + lowest.product() + " (₹" + lowest.amount() + ")");
+
+        double totalSales = orders.stream()
+                .filter(o -> !"CANCELLED".equalsIgnoreCase(o.status()))
+                .mapToDouble(Order::amount)
+                .sum();
+        System.out.println("\n--- 4. Total Active Sales ---");
+        System.out.println("Total Sales: ₹" + totalSales);
+
+        long totalCount = orders.stream().count();
+        Map<String, Long> countByStatus = orders.stream()
+                .collect(Collectors.groupingBy(Order::status, Collectors.counting()));
+        System.out.println("\n--- 5. Order Counts ---");
+        System.out.println("Total Orders: " + totalCount + " | By Status: " + countByStatus);
+
+        Map<String, Map<String, List<Order>>> groupedByCategoryAndCity = orders.stream()
+                .collect(Collectors.groupingBy(
+                        Order::category,
+                        Collectors.groupingBy(Order::deliveryCity)
+                ));
+        System.out.println("\n--- 6. Grouped by Category and City ---");
+        groupedByCategoryAndCity.forEach((category, cityMap) -> {
+            System.out.println("Category: " + category);
+            cityMap.forEach((city, cityOrders) ->
+                    System.out.println("  " + city + " -> " + cityOrders.size() + " order(s)"));
+        });
+
+        double avgAmount = orders.stream()
+                .mapToDouble(Order::amount)
+                .average()
+                .orElse(0.0);
+        System.out.printf("%n--- 7. Average Order Amount ---%nAverage: ₹%.2f%n", avgAmount);
+    }
+}
