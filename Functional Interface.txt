@@ -1,0 +1,70 @@
+package modernjava.lambdas;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+@FunctionalInterface
+interface WelcomeAction {
+    void display();
+}
+
+@FunctionalInterface
+interface TaxCalculator {
+    BigDecimal calculate(BigDecimal price);
+}
+
+@FunctionalInterface
+interface TotalBillCalculator {
+    BigDecimal calculate(BigDecimal price, int quantity);
+}
+
+@FunctionalInterface
+interface DiscountCalculator {
+    BigDecimal apply(BigDecimal amount);
+}
+
+public class ShoppingBillingApp {
+    public static void main(String[] args) {
+
+        WelcomeAction welcome = () -> System.out.println(" Welcome ");
+
+
+        TaxCalculator gstCalculator = price ->
+                price.multiply(new BigDecimal("0.18")).setScale(2, RoundingMode.HALF_UP);
+
+
+        TotalBillCalculator totalCalculator = (price, qty) ->
+                price.multiply(BigDecimal.valueOf(qty)).setScale(2, RoundingMode.HALF_UP);
+
+
+        DiscountCalculator discountAmount = amount ->
+                amount.multiply(new BigDecimal("0.10")).setScale(2, RoundingMode.HALF_UP);
+
+
+        DiscountCalculator finalPayableCalculator = amount -> {
+            BigDecimal discount = amount.multiply(new BigDecimal("0.10"));
+            BigDecimal finalAmount = amount.subtract(discount);
+            return finalAmount.setScale(2, RoundingMode.HALF_UP);
+        };
+
+
+        welcome.display();
+
+        BigDecimal unitPrice = new BigDecimal("1200.00");
+        int quantity = 3;
+
+        BigDecimal baseTotal = totalCalculator.calculate(unitPrice, quantity);
+        BigDecimal gst = gstCalculator.calculate(baseTotal);
+        BigDecimal grossTotal = baseTotal.add(gst);
+        BigDecimal discount = discountAmount.apply(grossTotal);
+        BigDecimal finalPayable = finalPayableCalculator.apply(grossTotal);
+
+        System.out.println("Unit Price      : ₹" + unitPrice);
+        System.out.println("Quantity        : " + quantity);
+        System.out.println("Base Total      : ₹" + baseTotal);
+        System.out.println("18% GST         : ₹" + gst);
+        System.out.println("Gross Total     : ₹" + grossTotal);
+        System.out.println("10% Discount    : ₹" + discount);
+        System.out.println("Final Payable   : ₹" + finalPayable);
+    }
+}
